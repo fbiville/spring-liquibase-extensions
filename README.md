@@ -17,12 +17,12 @@
  * JDK 6+
  * Maven 2+
  * Spring 2.0.6+
- * Liquibase 3.1.0+ (see next section)
+ * Liquibase 3.0.6+ (see next section)
 
 ### Temporary setup instructions
 
  1. Clone [this forked version](https://github.com/fbiville/liquibase) of Liquibase
- 1. `cd path/to/liquibase/fork; mvn clean install -DskipTests`
+ 1. `cd path/to/liquibase/fork; git checkout 3.0.x; mvn clean install -DskipTests`
  1. Clone this repo and build it with `mvn clean install`
 
 ## "dirty" changeset check
