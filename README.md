@@ -21,8 +21,8 @@
 
 ### Temporary setup instructions
 
- 1. Clone [this forked version](https://github.com/fbiville/liquibase) of Liquibase
- 1. `cd path/to/liquibase/fork; git checkout 3.0.x; mvn clean install -DskipTests`
+ 1. Clone [Liquibase](https://github.com/liquibase/liquibase)
+ 1. `cd path/to/liquibase; git checkout 3.0.x; mvn clean install -DskipTests`
  1. Clone this repo and build it with `mvn clean install`
 
 ## "dirty" changeset check

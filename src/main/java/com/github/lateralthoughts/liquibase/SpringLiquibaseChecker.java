@@ -75,7 +75,7 @@ public class SpringLiquibaseChecker extends SpringLiquibase {
 
     private String stripClasspathPrefix(ChangeSet changeSet) {
         String filePath = changeSet.getFilePath();
-        if (isIgnoringClasspathPrefix()) {
+        if (isIgnoreClasspathPrefix()) {
             return filePath.replace("classpath:", "");
         }
         return filePath;
