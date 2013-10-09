@@ -19,12 +19,6 @@
  * Spring 2.0.6+
  * Liquibase 3.0.6+ (see next section)
 
-### Temporary setup instructions
-
- 1. Clone [Liquibase](https://github.com/liquibase/liquibase)
- 1. `cd path/to/liquibase; git checkout 3.0.x; mvn clean install -DskipTests`
- 1. Clone this repo and build it with `mvn clean install`
-
 ## "dirty" changeset check
 
 ### Motivation

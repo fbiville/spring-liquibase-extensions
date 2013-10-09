@@ -49,7 +49,8 @@ public class SpringLiquibaseCheckerTest {
     }
 
     private void given_a_dirty_changeset() throws LiquibaseException {
-        when(liquibase.listUnrunChangeSets(anyString())).thenReturn(dirtyChangeSets());
+        List<ChangeSet> changeSets = dirtyChangeSets();
+        when(liquibase.listUnrunChangeSets(anyString())).thenReturn(changeSets);
     }
 
     private void given_a_run_always_changeset() throws LiquibaseException {
@@ -76,6 +77,8 @@ public class SpringLiquibaseCheckerTest {
     }
 
     private ChangeSet anyChangeSet() {
-        return mock(ChangeSet.class);
+        ChangeSet changeset = mock(ChangeSet.class);
+        when(changeset.getFilePath()).thenReturn("classpath:filepath");
+        return changeset;
     }
 }
