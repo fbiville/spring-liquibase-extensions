@@ -8,7 +8,7 @@
 <dependency>
     <groupId>com.lateral-thoughts</groupId>
     <artifactId>spring-liquibase-extensions</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0</version>
 </dependency>
 ```
 
@@ -17,7 +17,13 @@
  * JDK 6+
  * Maven 2+
  * Spring 2.0.6+
- * Liquibase 3.0.6+ (see next section)
+ * Liquibase 3.0.6+
+
+You probably don't want to depend on a version of Liquibase < 3.0.6.
+Indeed, there was a bug regarding changeset that has been fixed only
+in this version. Changeset paths prefixed with "classpath:" (which is most 
+likely the case with applications using SpringLiquibase bean) were not 
+considered the same as the ones without prefix.
 
 ## "dirty" changeset check
 
