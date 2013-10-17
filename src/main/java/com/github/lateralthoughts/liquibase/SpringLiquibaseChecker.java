@@ -2,11 +2,15 @@ package com.github.lateralthoughts.liquibase;
 
 import static java.lang.String.format;
 
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 
+import com.github.lateralthoughts.liquibase.filter.CustomLiquibase;
 import liquibase.Liquibase;
 import liquibase.changelog.ChangeSet;
+import liquibase.changelog.filter.ShouldRunChangeSetFilter;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 
@@ -17,6 +21,13 @@ import liquibase.integration.spring.SpringLiquibase;
  * @author Florent Biville (@fbiville)
  */
 public class SpringLiquibaseChecker extends SpringLiquibase {
+
+    protected Liquibase createLiquibase(Connection c) throws LiquibaseException {
+        Liquibase liquibase = new CustomLiquibase(getChangeLog(), createResourceOpener(), createDatabase(c));
+        liquibase.setIgnoreClasspathPrefix(isIgnoreClasspathPrefix());
+        return liquibase;
+    }
+
     /**
      * <p>
      * Checks whether {@link ChangeSet}s need to be run when
@@ -41,12 +52,13 @@ public class SpringLiquibaseChecker extends SpringLiquibase {
         Collection<ChangeSet> changeSets = filter(liquibase.listUnrunChangeSets(getContexts()));
 
         int size = changeSets.size();
-        if(size > 0) {
+        if (size > 0) {
             throw new UnexpectedLiquibaseChangesetException(
-                "%s changeset(s) has/have to run.\n" +
-                    changeSetNames(changeSets) +
-                    "This does *NOT* include changesets marked as 'alwaysRun'",
-                size
+                    "%s changeset(s) has/have to run.\n" +
+                            changeSetNames(changeSets) +
+                            "This does *NOT* include changesets marked as 'alwaysRun'...\n" +
+                            "\t...(unless they are marked as 'runOnChange' and have been altered).",
+                    size
             );
         }
     }
@@ -58,11 +70,15 @@ public class SpringLiquibaseChecker extends SpringLiquibase {
 
         Collection<ChangeSet> result = new ArrayList<ChangeSet>();
         for (ChangeSet changeSet : changeSets) {
-            if (!changeSet.isAlwaysRun()) {
+            if (hasBeenAltered(changeSet)) {
                 result.add(changeSet);
             }
         }
         return result;
+    }
+
+    private boolean hasBeenAltered(ChangeSet changeSet) {
+        return !changeSet.isAlwaysRun() || changeSet.isRunOnChange();
     }
 
     private String changeSetNames(Collection<ChangeSet> changeSets) {

@@ -48,6 +48,13 @@ public class SpringLiquibaseCheckerTest {
         }
     }
 
+    @Test(expectedExceptions = UnexpectedLiquibaseChangesetException.class)
+    public void fails_if_run_always_changeset_also_configured_to_run_on_change() throws LiquibaseException {
+        given_a_dirty_run_on_change_and_run_always_changeset();
+
+        liquibaseChecker.performUpdate(liquibase);
+    }
+
     private void given_a_dirty_changeset() throws LiquibaseException {
         List<ChangeSet> changeSets = dirtyChangeSets();
         when(liquibase.listUnrunChangeSets(anyString())).thenReturn(changeSets);
@@ -58,9 +65,20 @@ public class SpringLiquibaseCheckerTest {
         when(liquibase.listUnrunChangeSets(anyString())).thenReturn(changeSets);
     }
 
+    private void given_a_dirty_run_on_change_and_run_always_changeset() throws LiquibaseException {
+        List<ChangeSet> changeSets = runAlwaysAndRunOnChangeChangeSets();
+        when(liquibase.listUnrunChangeSets(anyString())).thenReturn(changeSets);
+    }
+
     private List<ChangeSet> runAlwaysChangeSets() {
         List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
         changeSets.add(runAlwaysChangeSet());
+        return changeSets;
+    }
+
+    private List<ChangeSet> runAlwaysAndRunOnChangeChangeSets() {
+        List<ChangeSet> changeSets = new ArrayList<ChangeSet>();
+        changeSets.add(runAlwaysAndRunOnChangeChangeSet());
         return changeSets;
     }
 
@@ -73,6 +91,13 @@ public class SpringLiquibaseCheckerTest {
     private ChangeSet runAlwaysChangeSet() {
         ChangeSet changeSet = anyChangeSet();
         when(changeSet.isAlwaysRun()).thenReturn(true);
+        return changeSet;
+    }
+
+    private ChangeSet runAlwaysAndRunOnChangeChangeSet() {
+        ChangeSet changeSet = anyChangeSet();
+        when(changeSet.isAlwaysRun()).thenReturn(true);
+        when(changeSet.isRunOnChange()).thenReturn(true);
         return changeSet;
     }
 
