@@ -5,12 +5,10 @@ import static java.lang.String.format;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Map;
 
 import com.github.lateralthoughts.liquibase.filter.CustomLiquibase;
 import liquibase.Liquibase;
 import liquibase.changelog.ChangeSet;
-import liquibase.changelog.filter.ShouldRunChangeSetFilter;
 import liquibase.exception.LiquibaseException;
 import liquibase.integration.spring.SpringLiquibase;
 
@@ -22,10 +20,30 @@ import liquibase.integration.spring.SpringLiquibase;
  */
 public class SpringLiquibaseChecker extends SpringLiquibase {
 
-    protected Liquibase createLiquibase(Connection c) throws LiquibaseException {
-        Liquibase liquibase = new CustomLiquibase(getChangeLog(), createResourceOpener(), createDatabase(c));
-        liquibase.setIgnoreClasspathPrefix(isIgnoreClasspathPrefix());
-        return liquibase;
+    /**
+     * Always ignores <code>runAlways</code> changesets
+     * @since 1.1
+     */
+    private boolean alwaysIgnoringRunAlways = true;
+
+    /**
+     * <p>
+     * When explicitly setting this parameter to false, {@link SpringLiquibaseChecker}
+     * will also verify migrations that are both marked <code>runAlways</code> AND <code>runOnChange</code>.
+     * If they have been altered since last execution, Spring context startup will be interrupted.
+     * </p>
+     * <p>
+     * By default, {@link SpringLiquibaseChecker} always ignores <code>runAlways</code> changesets even if they are
+     * marked as <code>runOnChange</code> and have been modified.
+     * </p>
+     * @param alwaysIgnoringRunAlways always ignores changesets marked as "runAlways"
+     */
+    public void setAlwaysIgnoringRunAlways(boolean alwaysIgnoringRunAlways) {
+        this.alwaysIgnoringRunAlways = alwaysIgnoringRunAlways;
+    }
+
+    public boolean isAlwaysIgnoringRunAlways() {
+        return alwaysIgnoringRunAlways;
     }
 
     /**
@@ -55,12 +73,24 @@ public class SpringLiquibaseChecker extends SpringLiquibase {
         if (size > 0) {
             throw new UnexpectedLiquibaseChangesetException(
                     "%s changeset(s) has/have to run.\n" +
-                            changeSetNames(changeSets) +
+                            "%s" +
                             "This does *NOT* include changesets marked as 'alwaysRun'...\n" +
-                            "\t...(unless they are marked as 'runOnChange' and have been altered).",
-                    size
+                            "\t...(unless they are marked as 'runOnChange'%s).",
+                    size,
+                    changeSetNames(changeSets),
+                    alwaysIgnoringRunAlways ? "" : " and have been altered"
             );
         }
+    }
+
+    protected Liquibase createLiquibase(Connection c) throws LiquibaseException {
+        if (isAlwaysIgnoringRunAlways()) {
+            return super.createLiquibase(c);
+        }
+
+        Liquibase liquibase = new CustomLiquibase(getChangeLog(), createResourceOpener(), createDatabase(c));
+        liquibase.setIgnoreClasspathPrefix(isIgnoreClasspathPrefix());
+        return liquibase;
     }
 
     private Collection<ChangeSet> filter(Collection<ChangeSet> changeSets) {
@@ -78,7 +108,11 @@ public class SpringLiquibaseChecker extends SpringLiquibase {
     }
 
     private boolean hasBeenAltered(ChangeSet changeSet) {
-        return !changeSet.isAlwaysRun() || changeSet.isRunOnChange();
+        boolean alwaysRuns = changeSet.isAlwaysRun();
+        if (alwaysIgnoringRunAlways) {
+            return !alwaysRuns;
+        }
+        return !alwaysRuns || changeSet.isRunOnChange();
     }
 
     private String changeSetNames(Collection<ChangeSet> changeSets) {

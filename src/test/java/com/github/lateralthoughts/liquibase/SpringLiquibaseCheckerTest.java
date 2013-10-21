@@ -49,9 +49,10 @@ public class SpringLiquibaseCheckerTest {
     }
 
     @Test(expectedExceptions = UnexpectedLiquibaseChangesetException.class)
-    public void fails_if_run_always_changeset_also_configured_to_run_on_change() throws LiquibaseException {
+    public void fails_if_run_always_changeset_also_configured_to_run_on_change_when_not_ignoring_runAlways() throws LiquibaseException {
         given_a_dirty_run_on_change_and_run_always_changeset();
 
+        liquibaseChecker.setAlwaysIgnoringRunAlways(false);
         liquibaseChecker.performUpdate(liquibase);
     }
 
